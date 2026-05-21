@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SEA EXPLORER</title>
+    <style>
+        :root {
+            --bg: #e0f4ff;          /* Bright Sky/Ocean Shallow */
+            --card: #ffffff;        /* Crisp White Deck */
+            --text: #1a3c5c;        /* Deep Navy Text */
+            --gold: #fbc531;        /* Pirate Gold (Next/Start) */
+            --sea-blue: #0097e6;    /* Vibrant Ocean Blue */
+            --deep-blue: #0c2461;   /* Abyssal Blue (Headers) */
+            --wood-brown: #8c7ae6;  /* Marine Slate/Gray */
+            --coral-red: #e84118;   /* Crimson Coral (Eject/Danger) */
+            --seafoam: #4cd137;     /* Bright Seafoam Green */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            padding: 12px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        html {
+            height: -webkit-fill-available;
+        }
+
+        /* --- SEA BACKGROUND ELEMENTS --- */
+        .sea-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            background: linear-gradient(180deg, #bfe8ff 0%, #e0f4ff 100%);
+        }
+
+        .waves {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: radial-gradient(circle at 50% 120%, rgba(0, 151, 230, 0.2) 0%, transparent 60%),
+                        radial-gradient(circle at 20% 120%, rgba(0, 168, 204, 0.15) 0%, transparent 50%);
+            opacity: 0.8;
+        }
+
+        .pirate-ship {
+            position: absolute;
+            bottom: 10%;
+            left: -100px;
+            font-size: 2.8rem;
+            opacity: 0.25;
+            animation: sailBy 30s linear infinite;
+        }
+
+        @keyframes sailBy {
+            0% { left: -100px; transform: translateY(0) scaleX(1); }
+            49% { transform: translateY(-5px) scaleX(1); }
+            50% { left: 110%; transform: translateY(-5px) scaleX(-1); } /* Turn around */
+            99% { transform: translateY(0) scaleX(-1); }
+            100% { left: -100px; transform: translateY(0) scaleX(1); }
+        }
+
+        /* --- CONTAINERS & UI --- */
+        .container {
+            width: 100%;
+            max-width: 540px;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(12, 36, 97, 0.15);
+            border: 4px solid #ffffff;
+            outline: 2px solid var(--sea-blue);
+            text-align: center;
+            display: none;
+            z-index: 1;
+            position: relative;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Target gameScreen to scale up dynamically to fit most of the viewport height */
+        #gameScreen.container {
+            max-width: 900px;
+            width: 95vw;
+            height: 90vh;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .active {
+            display: block;
+        }
+        
+        /* Set active display rule explicitly for flex on gameScreen */
+        #gameScreen.active {
+            display: flex;
+            animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- HOME SCREEN SPECIFICS --- */
+        #homeScreen h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--deep-blue);
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--sea-blue);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .home-tagline {
+            font-size: 1.1rem;
+            color: var(--sea-blue);
+            font-weight: bold;
+            margin-bottom: 35px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .ship-heading-icon {
+            font-size: 5rem;
+            margin: 20px 0;
+            display: inline-block;
+            animation: rideWaves 4s ease-in-out infinite;
+            filter: drop-shadow(0 6px 8px rgba(12, 36, 97, 0.15));
+        }
+
+        @keyframes rideWaves {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-12px) rotate(5deg); }
+        }
+
+        /* --- GAMEPLAY SCREEN --- */
+        .round-num {
+            font-size: 1rem;
+            color: var(--sea-blue);
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .scenario {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: var(--text);
+            margin-bottom: 14px;
+            min-height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        /* The container now grabs all available vertical space */
+        .img-display {
+            width: 100%;
+            flex-grow: 1;
+            height: 0; /* Allows flexbox to dynamically scale height instead of using a fixed px value */
+            background: #f0f7fc;
+            border-radius: 16px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed var(--sea-blue);
+            overflow: hidden;
+        }
+
+        .img-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 14px;
+        }
+
+        .reason {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--coral-red);
+            margin-top: 8px;
+            min-height: 24px;
+            line-height: 1.4;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- INTERACTIVE BUTTONS --- */
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px 10px;
+            font-size: 1rem;
+            font-weight: 900;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            color: white;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 0px rgba(0,0,0,0.15);
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0px rgba(0,0,0,0.15);
+        }
+
+        .btn-start { 
+            background-color: var(--gold); 
+            color: var(--deep-blue);
+            width: 80%; 
+            margin: 10px auto 0 auto;
+            padding: 18px;
+            font-size: 1.2rem;
+            border-radius: 14px;
+            box-shadow: 0 5px 0px #d4a313;
+            border: 2px solid #fff;
+        }
+        .btn-start:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0px #d4a313;
+        }
+        
+        .btn-back { background-color: #7f8c8d; box-shadow: 0 4px 0px #596263; }
+        .btn-eject { background-color: var(--coral-red); box-shadow: 0 4px 0px #b33015; }
+        .btn-next { background-color: var(--sea-blue); box-shadow: 0 4px 0px #0076b3; }
+
+        button:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+        /* --- MOBILE OPTIMIZATIONS --- */
+        @media (max-width: 400px) {
+            #homeScreen h1 { font-size: 2.4rem; }
+            .container { padding: 18px; border-radius: 20px; }
+            #gameScreen.container { width: 98vw; height: 95vh; padding: 14px; }
+            .scenario { font-size: 0.95rem; }
+            button { font-size: 0.9rem; padding: 14px 6px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sea-bg">
+        <div class="waves"></div>
+        <div class="pirate-ship">⛵</div>
+    </div>
+
+    <div class="container active" id="homeScreen">
+        <div class="ship-heading-icon">🏴‍☠️</div>
+        <h1>EXPLORE</h1>
+        <div class="home-tagline">Its like Geoguesser but for Pop Culture</div>
+        <button class="btn-start" onclick="startGame()">Set Sail!</button>
+    </div>
+
+    <div class="container" id="gameScreen">
+        <div class="round-num" id="roundNum"></div>
+        <div class="scenario" id="scenarioTxt"></div>
+
+        <div class="img-display" id="imgDisplayWrapper">
+            <img id="gameImg" src="" alt="Game Visual" onerror="this.style.display='none';">
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-back" id="btnBack" onclick="goBack()">Back</button>
+            <button class="btn-eject" id="btnEject" onclick="ejectPlayer()">Answer</button>
+            <button class="btn-next" id="btnNext" onclick="goNext()">Next</button>
+        </div>
+        
+        <div class="reason" id="revealTxt"></div>
+    </div>
+
+    <div class="container" id="winScreen">
+        <div style="font-size: 5rem; margin-bottom: 15px; animation: rideWaves 3s ease-in-out infinite;">👑</div>
+        <h1 style="color: var(--seafoam); margin-bottom: 25px; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--deep-blue)">TREASURE FOUND!</h1>
+        <button class="btn-start" onclick="restartGame()">Sail Again</button>
+    </div>
+
+    <script>
+        const rounds = [
+            {
+                scenario: "Some are Easy some are Hard all the best.",
+                sceneImg: "1.jpeg", 
+                ejectImg: "1A.jpeg",
+                reason: "B-2 Bomber"
+            },
+            {
+                scenario: "Hyundai?.",
+                sceneImg: "2.jpeg",
+                ejectImg: "2A.jpeg",
+                reason: "RedBull F1 car"
+            },
+            {
+                scenario: "Another Car?.",
+                sceneImg: "3.jpeg",
+                ejectImg: "3A.jpeg",
+                reason: "Lamborghini Aventador"
+            },
+            {
+                scenario: "Some Black and Silver.",
+                sceneImg: "4.jpeg",
+                ejectImg: "4A.jpeg",
+                reason: "AK-47"
+            },
+            {
+                scenario: "Yo a Building.",
+                sceneImg: "5.jpeg",
+                ejectImg: "5A.jpeg",
+                reason: "Humayun’s Tomb"
+            },
+            {
+                scenario: "Again Silver?'",
+                sceneImg: "6.jpeg",
+                ejectImg: "6A.jpeg",
+                reason: "Iphone 17"
+            },
+            {
+                scenario: "Ye toh Mast Maal hai re.",
+                sceneImg: "7.jpeg",
+                ejectImg: "7A.jpeg",
+                reason: "PS5"
+            },
+            {
+                scenario: "A Knight in shining Armor.",
+                sceneImg: "8.jpeg",
+                ejectImg: "8A.jpeg",
+                reason: "Jhonny English"
+            },
+            {
+                scenario: "This one is hard. hint:Money (Focus on RED)",
+                sceneImg: "9.jpeg",
+                ejectImg: "9A.jpeg",
+                reason: "Squid Game"
+            },
+            {
+                scenario: "ALIEN.",
+                sceneImg: "10.jpeg",
+                ejectImg: "10A.jpeg",
+                reason: "Modi XI"
+            },
+            {
+                scenario: "Red scooter.",
+                sceneImg: "11.jpeg",
+                ejectImg: "11A.jpeg",
+                reason: "3 Idiots"
+            },
+            {
+                scenario: "Thats an HAND.",
+                sceneImg: "12.jpeg",
+                ejectImg: "12A.jpeg",
+                reason: "Baby Modi"
+            },
+            {
+                scenario: "Whose PAW is it?.",
+                sceneImg: "13.jpeg",
+                ejectImg: "13A.jpeg",
+                reason: "Lion"
+            },
+            {
+                scenario: "Its not Superman.'",
+                sceneImg: "14.jpeg",
+                ejectImg: "14A.jpeg",
+                reason: "Angena Ghatram"
+            },
+            {
+                scenario: "Books.",
+                sceneImg: "15.jpeg",
+                ejectImg: "15A.jpeg",
+                reason: "Interstellar"
+            },
+            {
+                scenario: "Wheels.",
+                sceneImg: "16.jpeg",
+                ejectImg: "16A.jpeg",
+                reason: "Hampi"
+            },
+            {
+                scenario: "Rear mirror.",
+                sceneImg: "17.jpeg",
+                ejectImg: "17A.jpeg",
+                reason: "Zindagi Na Milegi Dubara"
+            },
+            {
+                scenario: "Fruit.",
+                sceneImg: "18.jpeg",
+                ejectImg: "18A.jpeg",
+                reason: "Cappybara"
+            },
+            {
+                scenario: "Its a Singer.",
+                sceneImg: "19.jpeg",
+                ejectImg: "19A.jpeg",
+                reason: "Bruno Mars"
+            },
+            {
+                scenario: "Eazy.",
+                sceneImg: "20.jpeg",
+                ejectImg: "20A.jpeg",
+                reason: "Peacock"
+            },
+            {
+                scenario: "4.",
+                sceneImg: "21.jpeg",
+                ejectImg: "21A.jpeg",
+                reason: "Blue Eyes"
+            },
+            {
+                scenario: "War is Bad.",
+                sceneImg: "22.jpeg",
+                ejectImg: "22A.jpeg",
+                reason: "Lord of The Rings"
+            },
+            {
+                scenario: "Pink.",
+                sceneImg: "23.jpeg",
+                ejectImg: "23A.jpeg",
+                reason: "Breaking Bad"
+            },
+            {
+                scenario: "Basement.",
+                sceneImg: "24.jpeg",
+                ejectImg: "24A.jpeg",
+                reason: "Attack on Titans"
+            },
+            {
+                scenario: "Gym gYm gyM.",
+                sceneImg: "25.jpeg",
+                ejectImg: "25A.jpeg",
+                reason: "Dragon Ball"
+            },
+            {
+                scenario: "Sand.",
+                sceneImg: "26.jpeg",
+                ejectImg: "26A.jpeg",
+                reason: "Pyramid"
+            },
+            {
+                scenario: "F.R.I.",
+                sceneImg: "27.jpeg",
+                ejectImg: "27A.jpeg",
+                reason: "Friends"
+            },
+            {
+                scenario: "Aaj ki baat Rajat Sharma k sath.",
+                sceneImg: "28.jpeg",
+                ejectImg: "28A.jpeg",
+                reason: "Aaj ki raat - Stree 2"
+            },
+            {
+                scenario: "Cigeratte.",
+                sceneImg: "29.jpeg",
+                ejectImg: "29A.jpeg",
+                reason: "Sanju bhai - Dhurandhar"
+            },
+            {
+                scenario: "Blood.",
+                sceneImg: "30.jpeg",
+                ejectImg: "30A.jpeg",
+                reason: "Akatsuki"
+            }
+        ];
+
+        let currentRound = 0;
+        const hScreen = document.getElementById("homeScreen");
+        const gScreen = document.getElementById("gameScreen");
+        const wScreen = document.getElementById("winScreen");
+        
+        const roundNum = document.getElementById("roundNum");
+        const scenarioTxt = document.getElementById("scenarioTxt");
+        const gameImg = document.getElementById("gameImg");
+        const revealTxt = document.getElementById("revealTxt");
+        const imgDisplayWrapper = document.getElementById("imgDisplayWrapper");
+        
+        const btnBack = document.getElementById("btnBack");
+        const btnEject = document.getElementById("btnEject");
+        const btnNext = document.getElementById("btnNext");
+
+        function startGame() {
+            hScreen.classList.remove("active");
+            gScreen.classList.add("active");
+            loadRound(0);
+        }
+
+        function loadRound(idx) {
+            currentRound = idx;
+            revealTxt.innerText = "";
+            
+            roundNum.innerText = `ROUND ${idx + 1} / 30`;
+            scenarioTxt.innerText = rounds[idx].scenario;
+            
+            // Safety handler to cleanly manage visual components safely
+            gameImg.style.display = "block";
+            gameImg.src = rounds[idx].sceneImg;
+
+            btnBack.disabled = idx === 0;
+            btnEject.disabled = false;
+            btnNext.innerText = idx === 29 ? "Claim Prize" : "Next";
+        }
+
+        function ejectPlayer() {
+            gameImg.style.display = "block";
+            gameImg.src = rounds[currentRound].ejectImg;
+            revealTxt.innerText = rounds[currentRound].reason;
+            btnEject.disabled = true;
+        }
+
+        function goNext() {
+            if (currentRound < 29) {
+                loadRound(currentRound + 1);
+            } else {
+                gScreen.classList.remove("active");
+                wScreen.classList.add("active");
+            }
+        }
+
+        function goBack() {
+            if (currentRound > 0) {
+                loadRound(currentRound - 1);
+            }
+        }
+
+        function restartGame() {
+            wScreen.classList.remove("active");
+            hScreen.classList.add("active");
+        }
+    </script>
+</body>
+</html>

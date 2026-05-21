@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOTTOM 100</title>
+    <style>
+        :root {
+            --bg-color: #fdfbf7;
+            --primary: #008080;
+            --primary-dark: #006666;
+            --secondary: #ff7f50;
+            --secondary-hover: #ff6347;
+            --gold: #ffd700;
+            --red: #ff4d4d;
+            --text-dark: #333333;
+            --text-light: #ffffff;
+            --tier-1: #ff4d4d; /* 1-10 */
+            --tier-2: #ffd700; /* 11-50 */
+            --tier-3: #2ecc71; /* 51-100 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            padding: 2rem 1rem;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: fadeIn 0.4s ease-in-out;
+            flex: 1;
+        }
+
+        .active-screen {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px var(--gold);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+        }
+
+        p, li {
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background-color: var(--secondary);
+            color: var(--text-light);
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            margin: 0.5rem;
+            text-transform: uppercase;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Rules */
+        .rules-list {
+            text-align: left;
+            margin: 1.5rem auto;
+            max-width: 500px;
+            padding-left: 1.5rem;
+        }
+        
+        .rules-list li {
+            margin-bottom: 0.8rem;
+        }
+
+        /* Setup Inputs */
+        .input-group {
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Wheel Screen */
+        .wheel-container {
+            position: relative;
+            width: 90vw;
+            max-width: 450px;
+            height: 90vw;
+            max-height: 450px;
+            margin: 2rem auto;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            position: relative;
+            background: #fff; 
+            display: block;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid var(--red);
+            z-index: 10;
+        }
+
+        .topic-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            min-height: 3rem;
+            margin-top: 1rem;
+            padding: 0 1rem;
+        }
+
+        /* Game Screen */
+        .game-header {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+        
+        .round-badge {
+            background: var(--gold);
+            color: var(--text-dark);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .game-topic-title {
+            margin-bottom: 0;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .scoreboard {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 100%;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .team-score {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .team-score.active-turn {
+            border-color: var(--primary);
+            background: #f0fcfc;
+        }
+
+        .team-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .team-points { font-size: 2rem; color: var(--primary); font-weight: bold; }
+        .team-rounds { font-size: 1rem; color: #666; margin-top: 0.5rem; }
+
+        .guess-section {
+            width: 100%;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .guess-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            width: 100%;
+        }
+
+        .guess-input-wrapper button {
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: left;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1rem;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #f0fcfc;
+        }
+
+        .history-panel {
+            width: 100%;
+            text-align: left;
+        }
+        
+        .history-panel h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+            text-align: center;
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .history-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-weight: bold;
+            border-left: 6px solid #ccc;
+            font-size: 0.95rem;
+        }
+
+        .tier-1 { border-left-color: var(--tier-1); }
+        .tier-2 { border-left-color: var(--tier-2); }
+        .tier-3 { border-left-color: var(--tier-3); }
+        .tier-wrong { border-left-color: #999; text-decoration: line-through; color: #777; }
+
+        .history-rank {
+            background: #eee;
+            padding: 0.3rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        /* Round End Screen */
+        .reveal-panel {
+            margin-top: 2rem;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .reveal-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            text-align: left;
+        }
+
+        .reveal-item {
+            padding: 0.5rem;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: var(--gold);
+            z-index: 1000;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        #turn-indicator {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Desktop Adjustments */
+        @media (min-width: 600px) {
+            h1 { font-size: 4rem; }
+            h2 { font-size: 2.5rem; }
+            .scoreboard { flex-direction: row; }
+            .history-list { grid-template-columns: 1fr 1fr; }
+            .reveal-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+            .game-header { flex-direction: row; justify-content: space-between; }
+            .game-topic-title { font-size: 1.8rem; }
+            .guess-input-wrapper { flex-direction: row; }
+            .guess-input-wrapper button { max-width: 150px; }
+            .btn { width: auto; margin: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="welcome-screen" class="screen active-screen">
+        <h1>BOTTOM 100</h1>
+        <div class="card">
+            <h2 style="color: var(--secondary); font-style: italic;">Anmol welcomes you to the game!</h2>
+            <p>Can you guess the highest ranked items in top 100 lists? Remember, higher ranks equal higher points!</p>
+            <br>
+            <button class="btn" onclick="showScreen('setup-screen')">Play Game</button>
+            <button class="btn" style="background-color: var(--primary);" onclick="showScreen('rules-screen')">How To Play</button>
+        </div>
+    </div>
+
+    <div id="rules-screen" class="screen">
+        <h1 style="font-size: 2.5rem;">How To Play</h1>
+        <div class="card">
+            <ul class="rules-list">
+                <li>🎯 Two teams compete against each other.</li>
+                <li>🔄 There are 10 rounds in total.</li>
+                <li>📝 Each round, both teams get 4 guesses, alternating turns.</li>
+                <li>💯 Points awarded equal the item's ranking number (Rank 100 = 100 pts, Rank 1 = 1 pt ).</li>
+                <li>🏆 The team with the highest points at the end of the round wins that round.</li>
+                <li>⚖️ The team with most rounds won, wins the Game.</li>
+            </ul>
+            <button class="btn" onclick="showScreen('welcome-screen')">Back</button>
+        </div>
+    </div>
+
+    <div id="setup-screen" class="screen">
+        <h1 style="font-size: 2.5rem;">Team Setup</h1>
+        <div class="card">
+            <div class="input-group">
+                <label>Team 1 Name</label>
+                <input type="text" id="team1-input" placeholder="Enter Team 1 Name (Default: Team A)">
+            </div>
+            <div class="input-group">
+                <label>Team 2 Name</label>
+                <input type="text" id="team2-input" placeholder="Enter Team 2 Name (Default: Team B)">
+            </div>
+            <button class="btn" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+
+    <div id="wheel-screen" class="screen">
+        <h2 id="wheel-title">Round 1 Category</h2>
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <canvas id="spin-wheel" class="wheel"></canvas>
+        </div>
+        <div class="topic-display" id="selected-topic-display">Spin to reveal the topic!</div>
+        <button class="btn" id="spin-btn" onclick="spinWheel()">Spin Topic</button>
+        <button class="btn" id="start-round-btn" style="display: none;" onclick="startRound()">Start Round</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div class="round-badge" id="game-round-badge">Round 1</div>
+            <h2 id="game-topic-title" class="game-topic-title">Topic Name</h2>
+            <div style="width: 100px; display: none;" class="desktop-spacer"></div>
+        </div>
+
+        <div class="scoreboard">
+            <div class="team-score" id="score-box-A">
+                <div class="team-name" id="name-display-A">Team A</div>
+                <div class="team-points" id="points-display-A">0</div>
+                <div class="team-rounds" id="rounds-display-A">Rounds Won: 0</div>
+            </div>
+            <div class="team-score" id="score-box-B">
+                <div class="team-name" id="name-display-B">Team B</div>
+                <div class="team-points" id="points-display-B">0</div>
+                <div class="team-rounds" id="rounds-display-B">Rounds Won: 0</div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 1.5rem 1rem;">
+            <div id="turn-indicator">Team A's Turn!</div>            
+            <div class="guess-section">
+                <div class="guess-input-wrapper">
+                    <div class="autocomplete-container">
+                        <input type="text" id="guess-input" placeholder="Type your guess here..." autocomplete="off">
+                        <div id="autocomplete-dropdown" class="autocomplete-list"></div>
+                    </div>
+                    <button class="btn" onclick="submitGuess()">Submit</button>
+                </div>
+            </div>
+            <div class="history-panel">
+                <h3>Guess History (Turn <span id="turn-count-display">1</span>/8)</h3>
+                <div class="history-list" id="guess-history-list">
+                    </div>
+            </div>
+            <button class="btn" style="background-color: #95a5a6; margin-top: 10px; font-size: 0.9rem; padding: 0.5rem;"                                             onclick="confirmSkip()">Skip Round</button>
+        </div>
+    </div>
+    <div id="round-end-screen" class="screen">
+        <h1 id="round-winner-title" style="font-size: 2.5rem;">Team A Wins The Round!</h1>
+        <div class="card">
+            <h2>Round Results</h2>
+            <div style="display:flex; justify-content: space-around; font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">
+                <div><span id="end-name-A">Team A</span>: <br><span id="end-score-A" style="color:var(--primary); font-size: 1.8rem;">0</span> pts</div>
+                <div><span id="end-name-B">Team B</span>: <br><span id="end-score-B" style="color:var(--primary); font-size: 1.8rem;">0</span> pts</div>
+            </div>
+            
+            <h3 style="margin-top: 2rem; color: var(--primary-dark);">Remaining Answers</h3>
+            <div class="reveal-panel">
+                <div class="reveal-grid" id="reveal-grid">
+                    </div>
+            </div>
+            
+            <button class="btn" style="margin-top: 2rem;" id="next-round-btn" onclick="prepareNextRound()">Next Round</button>
+        </div>
+    </div>
+
+    <div id="final-screen" class="screen">
+        <h1 style="font-size: 3.5rem; animation: pulse 2s infinite;">CONGRATULATIONS</h1>
+        <h2 id="final-winner-title" style="font-size: 2.5rem; color: var(--secondary);">TEAM WINS!</h2>
+        <div class="card">
+            <p style="font-size: 1.5rem; margin-bottom: 2rem;">What a fantastic game!</p>
+            <div style="font-size: 1.2rem; margin-bottom: 2rem; line-height: 2;">
+                <span id="final-stats-A" style="font-weight: bold; color: var(--primary);">Team A: 0 Rounds</span><br>
+                <span id="final-stats-B" style="font-weight: bold; color: var(--primary);">Team B: 0 Rounds</span>
+            </div>
+            <button class="btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME DATA ---
+        const gameTopics = {
+            "Top 100 most Common Surnames in India": ["Singh", "Kumar", "Sharma", "Gupta", "Patel", "Yadav", "Verma", "Mishra", "Agarwal", "Jain", "Reddy", "Nair", "Iyer", "Banerjee", "Chatterjee", "Mukherjee", "Das", "Ghosh", "Sen", "Roy", "Khan", "Ali", "Shaikh", "Sheikh", "Siddiqui", "Ansari", "Pathan", "Chauhan", "Rathore", "Thakur", "Rajput", "Solanki", "Parmar", "Pawar", "Patil", "Deshmukh", "Kulkarni", "Joshi", "Desai", "Mehta", "Shah", "Shetty", "Naidu", "Pillai", "Menon", "Nambiar", "Gowda", "Hegde", "Bhat", "Acharya", "Upadhyay", "Tiwari", "Dubey", "Pandey", "Tripathi", "Shukla", "Choudhary", "Bansal", "Mittal", "Goyal", "Khanna", "Kapoor", "Malhotra", "Arora", "Sethi", "Batra", "Kohli", "Oberoi", "Talwar", "Suri", "Gill", "Sandhu", "Dhillon", "Sidhu", "Brar", "Puri", "Chawla", "Luthra", "Wagh", "Sawant", "Jadhav", "Shinde", "Chavan", "Gaikwad", "More", "Patwardhan", "Vyas", "Trivedi", "Bhatt", "Bhattacharya", "Ranganathan", "Krishnan", "Iqbal", "Farooq", "Qureshi", "Hussain", "Patnaik", "Raut", "Sheikhzada", "Khanam"],
+            "Top 100 most Famous Indian Cricketers": ["Sachin Tendulkar", "Virat Kohli", "MS Dhoni", "Kapil Dev", "Sunil Gavaskar", "Rahul Dravid", "Sourav Ganguly", "Anil Kumble", "Rohit Sharma", "Yuvraj Singh", "Zaheer Khan", "Harbhajan Singh", "Ravindra Jadeja", "Ravichandran Ashwin", "Virender Sehwag", "VVS Laxman", "Jasprit Bumrah", "Mohammad Azharuddin", "Shikhar Dhawan", "Suresh Raina", "Hardik Pandya", "KL Rahul", "Rishabh Pant", "Ajinkya Rahane", "Cheteshwar Pujara", "Bhuvneshwar Kumar", "Mohammad Shami", "Ishant Sharma", "Irfan Pathan", "Yusuf Pathan", "Gautam Gambhir", "Navjot Singh Sidhu", "Ajay Jadeja", "Robin Uthappa", "Dinesh Karthik", "Parthiv Patel", "Murali Kartik", "Sandeep Patil", "Kris Srikkanth", "Dilip Vengsarkar", "Bishan Singh Bedi", "Erapalli Prasanna", "Bhagwat Chandrasekhar", "Mohammad Kaif", "Manoj Tiwary", "Sanju Samson", "Shreyas Iyer", "Suryakumar Yadav", "Kuldeep Yadav", "Yuzvendra Chahal", "Axar Patel", "Washington Sundar", "Deepak Chahar", "Umesh Yadav", "Praveen Kumar", "Varun Chakravarthy", "Arshdeep Singh", "Prithvi Shaw", "Ishan Kishan", "Abhishek Sharma", "Tilak Varma", "Ruturaj Gaikwad", "Devdutt Padikkal", "Mayank Agarwal", "Hanuma Vihari", "Karun Nair", "Stuart Binny", "Vijay Shankar", "Wriddhiman Saha", "Shardul Thakur", "Jaydev Unadkat", "Manish Pandey", "Piyush Chawla", "Amit Mishra", "Laxmipathy Balaji", "RP Singh", "Ashish Nehra", "S Sreesanth", "Joginder Sharma", "Venkatesh Iyer", "Mohit Sharma", "T Natarajan", "Avesh Khan", "Rahul Chahar", "Krunal Pandya", "Varun Aaron", "Munaf Patel", "Ajit Agarkar", "Kedar Jadhav", "Ambati Rayudu", "Vijay Hazare", "Polly Umrigar", "Mansoor Ali Khan Pataudi", "Syed Kirmani", "Chetan Sharma", "Ravi Shastri", "Madan Lal", "Roger Binny", "Farokh Engineer", "Gundappa Viswanath"],
+            "Top 100 most Famous Indian Cities": ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Surat", "Kanpur", "Nagpur", "Indore", "Bhopal", "Patna", "Vadodara", "Ludhiana", "Agra", "Varanasi", "Amritsar", "Chandigarh", "Coimbatore", "Kochi", "Thiruvananthapuram", "Madurai", "Mysuru", "Mangaluru", "Nashik", "Aurangabad", "Kolhapur", "Solapur", "Jodhpur", "Udaipur", "Ajmer", "Kota", "Gwalior", "Jabalpur", "Raipur", "Ranchi", "Dhanbad", "Bhubaneswar", "Cuttack", "Guwahati", "Shillong", "Imphal", "Aizawl", "Itanagar", "Gangtok", "Siliguri", "Darjeeling", "Dehradun", "Haridwar", "Rishikesh", "Shimla", "Manali", "Leh", "Srinagar", "Jammu", "Panaji", "Vasco da Gama", "Margao", "Pondicherry", "Tirupati", "Visakhapatnam", "Vijayawada", "Guntur", "Warangal", "Karimnagar", "Tiruchirappalli", "Salem", "Erode", "Vellore", "Tirunelveli", "Nagercoil", "Alappuzha", "Kollam", "Thrissur", "Kannur", "Kozhikode", "Palakkad", "Kottayam", "Pathanamthitta", "Chittoor", "Kakinada", "Nellore", "Anantapur", "Kadapa", "Bellary", "Hubli", "Dharwad", "Belgaum", "Gulbarga", "Bidar", "Davanagere", "Tumkur", "Udupi", "Karwar", "Satara", "Sangli"],
+            "Top 100 most Famous Indian Celebrities": ["Shah Rukh Khan", "Amitabh Bachchan", "Salman Khan", "Aamir Khan", "Rajinikanth", "Deepika Padukone", "Priyanka Chopra", "Alia Bhatt", "Ranbir Kapoor", "Hrithik Roshan", "Akshay Kumar", "Ajay Devgn", "Kareena Kapoor", "Katrina Kaif", "Anushka Sharma", "Ranveer Singh", "Virat Kohli", "MS Dhoni", "Sachin Tendulkar", "Rohit Sharma", "Kapil Sharma", "Allu Arjun", "Ram Charan", "Jr NTR", "Prabhas", "Mahesh Babu", "Vijay", "Ajith Kumar", "Yash", "Suriya", "Kamal Haasan", "Chiranjeevi", "Pawan Kalyan", "Nagarjuna", "Mohanlal", "Mammootty", "Dulquer Salmaan", "Fahadh Faasil", "Nayanthara", "Samantha Ruth Prabhu", "Rashmika Mandanna", "Tamannaah Bhatia", "Kajal Aggarwal", "Kriti Sanon", "Kiara Advani", "Shraddha Kapoor", "Varun Dhawan", "Tiger Shroff", "Siddharth Malhotra", "Kartik Aaryan", "Ayushmann Khurrana", "Vicky Kaushal", "Rajkummar Rao", "Nawazuddin Siddiqui", "Pankaj Tripathi", "Manoj Bajpayee", "Kapil Dev", "Sunil Gavaskar", "Sourav Ganguly", "Rahul Dravid", "Hardik Pandya", "Jasprit Bumrah", "PV Sindhu", "Saina Nehwal", "Neeraj Chopra", "Mary Kom", "Sania Mirza", "Hima Das", "Milkha Singh", "Baichung Bhutia", "Sunil Chhetri", "Anil Kapoor", "Madhuri Dixit", "Kajol", "Rani Mukerji", "Aishwarya Rai", "Rekha", "Hema Malini", "Sridevi", "Juhi Chawla", "Govinda", "Jackie Shroff", "Sanjay Dutt", "Arjun Kapoor", "Sonam Kapoor", "Disha Patani", "Rakul Preet Singh", "Taapsee Pannu", "Bhumi Pednekar", "Vidya Balan", "Kangana Ranaut", "Parineeti Chopra", "Genelia D'Souza", "Ritesh Deshmukh", "Boman Irani", "Farhan Akhtar", "Zoya Akhtar", "Karan Johar", "Rohit Shetty", "SS Rajamouli"],
+            "Top 100 most Famous Indian Dishes": ["Biryani", "Butter Chicken", "Masala Dosa", "Samosa", "Paneer Butter Masala", "Chole Bhature", "Tandoori Chicken", "Idli", "Vada Pav", "Pani Puri", "Pav Bhaji", "Dhokla", "Khaman", "Dal Makhani", "Rajma Chawal", "Aloo Paratha", "Roti", "Naan", "Kulcha", "Chaat", "Bhel Puri", "Sev Puri", "Misal Pav", "Poha", "Upma", "Pongal", "Uttapam", "Medu Vada", "Rasam", "Sambar", "Fish Curry", "Prawn Curry", "Chicken Curry", "Mutton Rogan Josh", "Korma", "Kadai Paneer", "Palak Paneer", "Malai Kofta", "Shahi Paneer", "Kathi Roll", "Frankie", "Egg Curry", "Dal Tadka", "Khichdi", "Kadhi", "Thepla", "Undhiyu", "Handvo", "Litti Chokha", "Momos", "Thukpa", "Jalebi", "Gulab Jamun", "Rasgulla", "Sandesh", "Laddu", "Barfi", "Kaju Katli", "Mysore Pak", "Peda", "Rasmalai", "Payasam", "Kheer", "Halwa", "Soan Papdi", "Ghewar", "Modak", "Puran Poli", "Basundi", "Shrikhand", "Amritsari Kulcha", "Chole Kulche", "Butter Naan", "Chicken Biryani", "Hyderabadi Biryani", "Lucknowi Biryani", "Kolkata Biryani", "Veg Biryani", "Egg Biryani", "Keema Pav", "Chicken 65", "Gobi Manchurian", "Paneer Tikka", "Chicken Tikka", "Seekh Kebab", "Galouti Kebab", "Tunday Kebab", "Baingan Bharta", "Aloo Gobi", "Bhindi Masala", "Tandoori Roti", "Makki Di Roti", "Sarson Da Saag", "Dal Baati", "Churma", "Kachori", "Fafda", "Jalebi Fafda", "Pakhala Bhata", "Appam"],
+            "Top 100 most Famous Indian Movies": ["Sholay", "Dangal", "Baahubali", "3 Idiots", "Mughal-e-Azam", "Dilwale Dulhania Le Jayenge", "Lagaan", "RRR", "PK", "Gully Boy", "Mother India", "Pather Panchali", "Andaz Apna Apna", "Swades", "Rang De Basanti", "Taare Zameen Par", "Chak De India", "Kabhi Khushi Kabhie Gham", "Kabir Singh", "Sultan", "Bajrangi Bhaijaan", "Pathaan", "Jawan", "KGF", "KGF Chapter 2", "Pushpa", "Arjun Reddy", "Drishyam", "Drishyam 2", "Tumbbad", "Uri", "Border", "Gadar", "Don", "Zanjeer", "Deewar", "Amar Akbar Anthony", "Hera Pheri", "Phir Hera Pheri", "Welcome", "Bhool Bhulaiyaa", "Om Shanti Om", "Chennai Express", "Dhoom", "Dhoom 2", "War", "Tiger Zinda Hai", "Ek Tha Tiger", "Raazi", "Queen", "Barfi", "Rockstar", "Tamasha", "Zindagi Na Milegi Dobara", "Dil Chahta Hai", "Kal Ho Naa Ho", "Devdas", "Black", "Piku", "Pink", "Article 15", "Badhaai Ho", "Stree", "Kahaani", "Special 26", "Baby", "Ghajini", "Singham", "Golmaal", "Housefull", "Hungama", "Welcome Back", "Bhagam Bhag", "Tanhaji", "Kesari", "Simmba", "Padmaavat", "Bajirao Mastani", "Ram Leela", "Dil Se", "Roja", "Bombay", "Nayakan", "Vikram", "Kaithi", "Asuran", "Jai Bhim", "Drishyam (Malayalam)", "Bangalore Days", "Premam", "Lucifer", "Minnal Murali", "Kantara", "Ugramm", "777 Charlie", "Lucia", "Super Deluxe", "Vikram Vedha", "Kaala", "Enthiran"],
+            "Top 100 most Famous Indian Companies": ["Reliance Industries", "Tata Group", "Infosys", "Wipro", "HDFC Bank", "ICICI Bank", "State Bank of India", "Mahindra & Mahindra", "Adani Group", "Bajaj Auto", "Tata Motors", "Tata Steel", "TCS", "HCL Technologies", "Tech Mahindra", "Larsen & Toubro", "ITC", "Asian Paints", "Maruti Suzuki", "Hero MotoCorp", "Hindustan Unilever", "Britannia", "Nestle India", "Amul", "Dabur", "Patanjali", "Godrej", "Aditya Birla Group", "JSW Steel", "Vedanta", "Coal India", "ONGC", "GAIL", "NTPC", "Power Grid", "UltraTech Cement", "ACC Cement", "Ambuja Cement", "Dr Reddy’s", "Sun Pharma", "Cipla", "Biocon", "Apollo Hospitals", "Fortis Healthcare", "Aurobindo Pharma", "Lupin", "MRF", "CEAT", "TVS Motor", "Ashok Leyland", "Indigo Airlines", "SpiceJet", "Air India", "Zomato", "Swiggy", "Flipkart", "Paytm", "PhonePe", "Razorpay", "Byju’s", "Unacademy", "OYO", "Ola", "RedBus", "MakeMyTrip", "IRCTC", "BookMyShow", "Nykaa", "Lenskart", "Boat", "Noise", "Micromax", "Lava", "Reliance Jio", "Airtel", "Vodafone Idea", "BSNL", "Tata Power", "Adani Ports", "Container Corp", "Pidilite", "Havells", "Crompton", "Voltas", "Blue Star", "Raymond", "Arvind Mills", "Titan", "Tanishq", "Malabar Gold", "Kalyan Jewellers", "PVR Cinemas", "Inox", "Zee Entertainment", "Star India", "Sony India", "NDTV", "Times Group", "Hindustan Times", "Dainik Bhaskar"],
+            "Top 100 Animals": ["Dog", "Cat", "Lion", "Tiger", "Elephant", "Horse", "Cow", "Panda", "Dolphin", "Kangaroo", "Bear", "Wolf", "Fox", "Cheetah", "Leopard", "Giraffe", "Zebra", "Gorilla", "Chimpanzee", "Orangutan", "Hippopotamus", "Rhinoceros", "Camel", "Donkey", "Goat", "Sheep", "Pig", "Buffalo", "Deer", "Antelope", "Moose", "Elk", "Jaguar", "Lynx", "Hyena", "Otter", "Beaver", "Raccoon", "Squirrel", "Rabbit", "Hare", "Rat", "Mouse", "Hamster", "Guinea Pig", "Koala", "Wombat", "Tasmanian Devil", "Platypus", "Echidna", "Penguin", "Eagle", "Hawk", "Falcon", "Owl", "Parrot", "Peacock", "Flamingo", "Swan", "Duck", "Goose", "Chicken", "Turkey", "Ostrich", "Emu", "Albatross", "Shark", "Whale", "Octopus", "Squid", "Crab", "Lobster", "Jellyfish", "Seahorse", "Starfish", "Clownfish", "Salmon", "Tuna", "Swordfish", "Stingray", "Crocodile", "Alligator", "Turtle", "Tortoise", "Snake", "Cobra", "Python", "Viper", "Lizard", "Gecko", "Chameleon", "Frog", "Toad", "Salamander", "Axolotl", "Butterfly", "Bee", "Ant", "Dragonfly", "Ladybug"],
+            "Top 100 Inventions": ["Wheel", "Printing Press", "Electricity", "Telephone", "Light Bulb", "Internet", "Computer", "Airplane", "Television", "Smartphone", "Radio", "Steam Engine", "Internal Combustion Engine", "Battery", "Camera", "Microscope", "Telescope", "Compass", "Paper", "Penicillin", "Vaccines", "Antibiotics", "X-ray", "MRI Scanner", "GPS", "Satellite", "Rocket", "Nuclear Power", "Solar Panel", "Wind Turbine", "Refrigerator", "Washing Machine", "Air Conditioner", "Elevator", "Escalator", "Bicycle", "Motorcycle", "Automobile", "Submarine", "Radar", "Sonar", "Barcode", "Laser", "Fiber Optics", "Transistor", "Microchip", "Hard Drive", "USB", "WiFi", "Bluetooth", "Email", "Web Browser", "Search Engine", "Social Media", "3D Printing", "Robotics", "Artificial Intelligence", "Machine Learning", "Cloud Computing", "Blockchain", "Cryptocurrency", "Touchscreen", "Keyboard", "Mouse", "Video Games", "Digital Camera", "LED Light", "Drone", "Electric Car", "Hybrid Car", "Jet Engine", "Helicopter", "Parachute", "Diving Suit", "Fire Extinguisher", "Safety Pin", "Zipper", "Velcro", "Ballpoint Pen", "Fountain Pen", "Typewriter", "Printing Ink", "Calendar", "Clock", "Alarm Clock", "Calculator", "Spreadsheet", "Word Processor", "PDF", "QR Code", "ATM", "Credit Card", "Debit Card", "Online Banking", "Streaming", "Smartwatch", "Fitness Tracker", "Virtual Reality", "Augmented Reality", "Quantum Computer"],
+            "Top 100 Sports": ["Football (Soccer)", "Cricket", "Basketball", "Tennis", "Volleyball", "Table Tennis", "Badminton", "Baseball", "Golf", "Hockey", "Field Hockey", "Ice Hockey", "Rugby", "American Football", "Handball", "Water Polo", "Swimming", "Diving", "Surfing", "Skateboarding", "Snowboarding", "Skiing", "Figure Skating", "Speed Skating", "Curling", "Bobsleigh", "Luge", "Skeleton", "Archery", "Shooting", "Boxing", "Wrestling", "Judo", "Taekwondo", "Karate", "Kung Fu", "Mixed Martial Arts", "Fencing", "Gymnastics", "Trampoline", "Athletics", "Marathon", "Sprinting", "Long Jump", "High Jump", "Pole Vault", "Shot Put", "Discus Throw", "Hammer Throw", "Javelin Throw", "Cycling", "BMX", "Mountain Biking", "Road Cycling", "Track Cycling", "Rowing", "Canoeing", "Kayaking", "Sailing", "Yachting", "Horse Racing", "Polo", "Equestrian", "Formula 1", "MotoGP", "Rally Racing", "Drag Racing", "Karting", "Esports", "Chess", "Checkers", "Snooker", "Billiards", "Pool", "Bowling", "Darts", "Croquet", "Lacrosse", "Softball", "Netball", "Sepak Takraw", "Kabaddi", "Kho Kho", "Mallakhamb", "Tug of War", "Arm Wrestling", "Powerlifting", "Weightlifting", "Bodybuilding", "Strongman", "Ultimate Frisbee", "Disc Golf", "Paintball", "Airsoft", "Parkour", "Orienteering", "Triathlon", "Pentathlon", "Decathlon", "Biathlon"]
+        };
+
+        const tieBreakerTopic = "Top 100 Colors";
+        const tieBreakerData = ["Blue", "Red", "Black", "White", "Green", "Yellow", "Purple", "Pink", "Orange", "Brown", "Cyan", "Magenta", "Maroon", "Navy", "Teal", "Olive", "Gold", "Silver", "Bronze", "Indigo", "Violet", "Turquoise", "Coral", "Salmon", "Peach", "Lavender", "Beige", "Cream", "Mint", "Lime", "Chocolate", "Crimson", "Scarlet", "Ruby", "Emerald", "Sapphire", "Amber", "Jade", "Charcoal", "Ivory", "Khaki", "Mustard", "Rose", "Lilac", "Plum", "Periwinkle", "Burgundy", "Sky Blue", "Baby Blue", "Steel Blue", "Forest Green", "Sea Green", "Apple Green", "Neon Green", "Neon Pink", "Neon Blue", "Neon Yellow", "Pastel Blue", "Pastel Pink", "Pastel Green", "Pastel Purple", "Hot Pink", "Deep Purple", "Royal Blue", "Midnight Blue", "Electric Blue", "Aqua", "Aquamarine", "Tangerine", "Apricot", "Honey", "Sand", "Stone", "Smoke", "Ash", "Pearl", "Opal", "Orchid", "Maple", "Moss", "Fern", "Pine", "Denim", "Ice Blue", "Cloud White", "Snow", "Fire Red", "Sunset Orange", "Sunrise Yellow", "Twilight Purple", "Ocean Blue", "Desert Sand", "Earth Brown", "Galaxy Purple", "Cosmic Blue", "Candy Pink", "Bubblegum Pink", "Lemon Yellow", "Mango Orange", "Cherry Red"];
+        
+        // --- STATE VARIABLES ---
+        let teamA = { name: "Team A", roundPoints: 0, roundsWon: 0 };
+        let teamB = { name: "Team B", roundPoints: 0, roundsWon: 0 };
+        
+        let availableTopics = Object.keys(gameTopics);
+        let currentRoundNum = 1;
+        let isTieBreaker = false;
+        let currentTopic = "";
+        let currentTopicItems = [];
+        
+        let currentTurn = 'A'; // 'A' or 'B'
+        let turnCount = 0; // Max 8 per round
+        let guessedItems = new Set();
+        
+        const wheelColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71', '#F1C40F'];
+
+        // --- DOM ELEMENTS ---
+        const inputField = document.getElementById("guess-input");
+        const autocompleteDropdown = document.getElementById("autocomplete-dropdown");
+
+        // --- HELPER FUNCTIONS ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(screenId).classList.add('active-screen');
+            // Redraw wheel if opening wheel screen to ensure canvas scales right
+            if(screenId === 'wheel-screen') {
+                drawWheel(isTieBreaker ? [tieBreakerTopic] : availableTopics);
+            }
+        }
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            const t1 = document.getElementById("team1-input").value.trim();
+            const t2 = document.getElementById("team2-input").value.trim();
+            
+            if (t1) teamA.name = t1;
+            if (t2) teamB.name = t2;
+            
+            updateScoreboardNames();
+            prepareWheelScreen();
+        }
+
+        function updateScoreboardNames() {
+            document.getElementById("name-display-A").innerText = teamA.name;
+            document.getElementById("name-display-B").innerText = teamB.name;
+            document.getElementById("end-name-A").innerText = teamA.name;
+            document.getElementById("end-name-B").innerText = teamB.name;
+        }
+
+        function drawWheel(topicsArr) {
+            const canvas = document.getElementById("spin-wheel");
+            // Set a high fixed internal resolution so text is sharp, CSS scales it down.
+            const size = 600; 
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext("2d");
+            
+            const radius = size / 2;
+            const centerX = radius;
+            const centerY = radius;
+            
+            ctx.clearRect(0, 0, size, size);
+            
+            const sliceAngle = (2 * Math.PI) / topicsArr.length;
+            const offset = -Math.PI / 2; // Start canvas drawing so angle 0 is at the TOP.
+            
+            for(let i = 0; i < topicsArr.length; i++) {
+                const startAngle = offset + (i * sliceAngle);
+                const endAngle = offset + ((i + 1) * sliceAngle);
+                
+                // Draw Colored Slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.fillStyle = wheelColors[i % wheelColors.length];
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#ffffff";
+                ctx.stroke();
+                
+                // Draw Topic Text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                // Rotate canvas to the middle of the current slice
+                ctx.rotate(startAngle + (sliceAngle / 2));
+                
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#ffffff"; 
+                ctx.font = "bold 22px 'Segoe UI', Arial, sans-serif";
+                
+                // Add shadow for text readability over bright colors
+                ctx.shadowColor = "rgba(0,0,0,0.6)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+
+                // Clean up long strings to make them fit nicely on the slice
+                let shortName = topicsArr[i].replace(/Top 100 (most )?/i, '');
+                
+                // Draw text slightly inwards from the edge, with a max width so it doesn't hit center
+                ctx.fillText(shortName, radius - 30, 0, radius - 70);
+                ctx.restore();
+            }
+            
+            // Reset CSS rotation to 0 when newly drawn
+            canvas.style.transform = `rotate(0deg)`; 
+        }
+
+        function prepareWheelScreen() {
+            showScreen('wheel-screen');
+            document.getElementById('wheel-title').innerText = isTieBreaker ? "TIE BREAKER ROUND" : `Round ${currentRoundNum}`;
+            document.getElementById('selected-topic-display').innerText = "Spin to reveal the topic!";
+            document.getElementById('spin-btn').style.display = "inline-block";
+            document.getElementById('start-round-btn').style.display = "none";
+        }
+
+        function spinWheel() {
+            document.getElementById('spin-btn').style.display = "none";
+            const wheel = document.getElementById("spin-wheel");
+            
+            let topicsToUse = isTieBreaker ? [tieBreakerTopic] : availableTopics;
+            let sliceCount = topicsToUse.length;
+            
+            // Pick random topic
+            let selectedIndex = Math.floor(Math.random() * sliceCount);
+            if (isTieBreaker) selectedIndex = 0;
+            
+            currentTopic = topicsToUse[selectedIndex];
+            currentTopicItems = isTieBreaker ? tieBreakerData : gameTopics[currentTopic];
+            
+            let anglePerSlice = 360 / sliceCount;
+            // Since we drew slice 0 starting at TOP (0 degrees), the center of any slice `i` is at `i * anglePerSlice + anglePerSlice / 2`.
+            // To bring that slice to the top pointer, we must rotate the wheel BACKWARDS by that exact angle.
+            let targetRotation = -(selectedIndex * anglePerSlice + anglePerSlice / 2);
+            
+            // Add multiple spins (e.g. 5 full spins backwards)
+            let totalRotation = targetRotation - (360 * 5);
+            
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            
+            setTimeout(() => {
+                document.getElementById('selected-topic-display').innerText = currentTopic;
+                document.getElementById('start-round-btn').style.display = "inline-block";
+                
+                // Remove topic from pool
+                if(!isTieBreaker) {
+                    availableTopics.splice(selectedIndex, 1);
+                }
+            }, 4000); // Wait for 4s CSS transition
+        }
+
+        function startRound() {
+            // Reset Round Variables
+            teamA.roundPoints = 0;
+            teamB.roundPoints = 0;
+            currentTurn = 'A';
+            turnCount = 0;
+            guessedItems.clear();
+            
+            // UI Updates
+            document.getElementById('game-round-badge').innerText = isTieBreaker ? "TIE BREAKER" : `Round ${currentRoundNum}`;
+            document.getElementById('game-topic-title').innerText = currentTopic;
+            document.getElementById('guess-history-list').innerHTML = '';
+            document.getElementById('turn-count-display').innerText = '1';
+            inputField.value = '';
+            closeAutocomplete();
+            
+            updateScoresUI();
+            updateTurnUI();
+            showScreen('game-screen');
+        }
+
+        function updateScoresUI() {
+            document.getElementById('points-display-A').innerText = teamA.roundPoints;
+            document.getElementById('points-display-B').innerText = teamB.roundPoints;
+            document.getElementById('rounds-display-A').innerText = `Rounds Won: ${teamA.roundsWon}`;
+            document.getElementById('rounds-display-B').innerText = `Rounds Won: ${teamB.roundsWon}`;
+        }
+
+        function updateTurnUI() {
+            const teamName = currentTurn === 'A' ? teamA.name : teamB.name;
+            const indicator = document.getElementById('turn-indicator');
+            indicator.innerText = `${teamName}'s Turn!`;
+            indicator.style.color = currentTurn === 'A' ? 'var(--primary)' : 'var(--secondary)';
+            
+            document.getElementById('score-box-A').classList.toggle('active-turn', currentTurn === 'A');
+            document.getElementById('score-box-B').classList.toggle('active-turn', currentTurn === 'B');
+            document.getElementById('turn-count-display').innerText = Math.min(turnCount + 1, 8);
+        }
+
+        // --- AUTOCOMPLETE LOGIC ---
+        inputField.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            closeAutocomplete();
+            
+            if (val.length >= 3) {
+                const matches = currentTopicItems.filter(item => 
+                    item.toLowerCase().includes(val) && !guessedItems.has(item.toLowerCase())
+                ).slice(0, 6);
+                
+                if (matches.length > 0) {
+                    autocompleteDropdown.style.display = 'block';
+                    matches.forEach(match => {
+                        const div = document.createElement('div');
+                        div.className = 'autocomplete-item';
+                        // Highlight matching text
+                        const regex = new RegExp(`(${val})`, "gi");
+                        div.innerHTML = match.replace(regex, "<strong>$1</strong>");
+                        
+                        div.onclick = function() {
+                            inputField.value = match;
+                            closeAutocomplete();
+                            inputField.focus();
+                        };
+                        autocompleteDropdown.appendChild(div);
+                    });
+                }
+            }
+        });
+
+        function closeAutocomplete() {
+            autocompleteDropdown.innerHTML = '';
+            autocompleteDropdown.style.display = 'none';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== inputField) {
+                closeAutocomplete();
+            }
+        });
+
+        // Enter key to submit
+        inputField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitGuess();
+        });
+
+        // --- GUESSING LOGIC ---
+        function submitGuess() {
+            const rawGuess = inputField.value.trim();
+            if(!rawGuess) return;
+            
+            const lowerGuess = rawGuess.toLowerCase();
+            
+            if (guessedItems.has(lowerGuess)) {
+                alert("This item has already been guessed!");
+                inputField.value = '';
+                return;
+            }
+
+            // Find index ignoring case
+            const itemIndex = currentTopicItems.findIndex(item => item.toLowerCase() === lowerGuess);
+            
+            let earnedPoints = 0;
+            let displayRank = 'X';
+            let displayName = rawGuess;
+            let cssClass = 'tier-wrong';
+
+            if (itemIndex !== -1) {
+                earnedPoints = itemIndex + 1; // Rank is index + 1
+                displayRank = earnedPoints;
+                displayName = currentTopicItems[itemIndex]; // Use correct capitalization
+                guessedItems.add(lowerGuess);
+                
+                // Assign tier class based on rank
+                if (earnedPoints <= 10) cssClass = 'tier-1';
+                else if (earnedPoints <= 50) cssClass = 'tier-2';
+                else cssClass = 'tier-3';
+                
+                // Add points
+                if (currentTurn === 'A') teamA.roundPoints += earnedPoints;
+                else teamB.roundPoints += earnedPoints;
+            }
+
+            // Add to history UI
+            const historyList = document.getElementById('guess-history-list');
+            const teamInit = currentTurn === 'A' ? teamA.name.substring(0,3) : teamB.name.substring(0,3);
+            
+            const itemHtml = `
+                <div class="history-item ${cssClass} fadeIn">
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">(${teamInit}) ${displayName}</span>
+                    <span class="history-rank">${displayRank !== 'X' ? `Rank ${displayRank}` : '0 pts'}</span>
+                </div>
+            `;
+            historyList.insertAdjacentHTML('afterbegin', itemHtml);
+
+            // Turn progression
+            inputField.value = '';
+            closeAutocomplete();
+            updateScoresUI();
+            
+            turnCount++;
+            
+            if (turnCount >= 8) {
+                setTimeout(endRound, 1000);
+            } else {
+                currentTurn = currentTurn === 'A' ? 'B' : 'A';
+                updateTurnUI();
+                inputField.focus();
+            }
+        }
+
+        function endRound() {
+            document.getElementById('end-score-A').innerText = teamA.roundPoints;
+            document.getElementById('end-score-B').innerText = teamB.roundPoints;
+            
+            const titleEl = document.getElementById('round-winner-title');
+            if (teamA.roundPoints > teamB.roundPoints) {
+                titleEl.innerText = `${teamA.name} Wins!`;
+                teamA.roundsWon++;
+            } else if (teamB.roundPoints > teamA.roundPoints) {
+                titleEl.innerText = `${teamB.name} Wins!`;
+                teamB.roundsWon++;
+            } else {
+                titleEl.innerText = "Round is a Tie!";
+            }
+
+            // Generate Missing Answers
+            const revealGrid = document.getElementById('reveal-grid');
+            revealGrid.innerHTML = '';
+            
+            currentTopicItems.forEach((item, index) => {
+                if (!guessedItems.has(item.toLowerCase())) {
+                    const rank = index + 1;
+                    const div = document.createElement('div');
+                    div.className = 'reveal-item';
+                    div.innerHTML = `<span>${item}</span> <strong>#${rank}</strong>`;
+                    revealGrid.appendChild(div);
+                }
+            });
+
+            // Handle Game Flow logic
+            const btn = document.getElementById('next-round-btn');
+            if (isTieBreaker) {
+                btn.innerText = "Finish Game";
+            } else if (currentRoundNum === 10) {
+                if (teamA.roundsWon === teamB.roundsWon) {
+                    btn.innerText = "Play Tie Breaker";
+                } else {
+                    btn.innerText = "Finish Game";
+                }
+            } else {
+                btn.innerText = "Next Round";
+            }
+            
+            showScreen('round-end-screen');
+        }
+
+        function prepareNextRound() {
+            if (isTieBreaker) {
+                endGame();
+                return;
+            }
+
+            if (currentRoundNum === 10) {
+                if (teamA.roundsWon === teamB.roundsWon) {
+                    isTieBreaker = true;
+                    prepareWheelScreen();
+                } else {
+                    endGame();
+                }
+            } else {
+                currentRoundNum++;
+                prepareWheelScreen();
+            }
+        }
+
+        function endGame() {
+            let winnerName = "";
+            if (teamA.roundsWon > teamB.roundsWon) winnerName = teamA.name;
+            else if (teamB.roundsWon > teamA.roundsWon) winnerName = teamB.name;
+            else winnerName = "IT'S A COMPLETE TIE!"; // Unlikely with tie breaker
+            
+            document.getElementById('final-winner-title').innerText = `${winnerName} WINS!`;
+            document.getElementById('final-stats-A').innerText = `${teamA.name}: ${teamA.roundsWon} Rounds Won`;
+            document.getElementById('final-stats-B').innerText = `${teamB.name}: ${teamB.roundsWon} Rounds Won`;
+            
+            showScreen('final-screen');
+            triggerConfetti();
+        }
+
+        function triggerConfetti() {
+            for (let i = 0; i < 150; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = wheelColors[Math.floor(Math.random() * wheelColors.length)];
+                conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                conf.style.animationDelay = (Math.random() * 2) + 's';
+                document.body.appendChild(conf);
+                
+                // Cleanup
+                setTimeout(() => conf.remove(), 6000);
+            }
+        }
+        
+        // Handle window resizing to keep canvas looking sharp and properly scaled
+        window.addEventListener('resize', () => {
+            if (document.getElementById('wheel-screen').classList.contains('active-screen')) {
+                drawWheel(isTieBreaker ? [tieBreakerTopic] : availableTopics);
+            }
+        });
+function confirmSkip() {
+    if (confirm("Are you sure you want to skip this round? No more points will be awarded.")) {
+        endRound();
+    }
+}
+    </script>
+</body>
+</html>

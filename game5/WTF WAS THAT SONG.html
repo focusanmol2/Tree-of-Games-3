@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTF Was That Song?</title>
+    <style>
+        /* === CSS Reset & Base Styles === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Black', Impact, sans-serif;
+        }
+
+        body {
+            /* Cool, light background with a street vibe */
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* === Typography & Theme Elements === */
+        h1, h2 {
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            color: #a855f7; /* Vibrant Purple */
+            text-shadow: 4px 4px 0px #0f172a, 8px 8px 0px #38bdf8; /* Slate & Cyan shadow */
+            margin-bottom: 2rem;
+            transform: rotate(-2deg);
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: #0369a1;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-weight: bold;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+
+        /* === Layout & Containers === */
+        main {
+            width: 100%;
+            max-width: 800px;
+            padding: 1.5rem;
+        }
+
+        .screen {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            background-color: #ffffff;
+            border: 4px solid #0c4a6e;
+            border-radius: 16px;
+            padding: 2.5rem 1.5rem;
+            box-shadow: 12px 12px 0px #0284c7;
+            width: 100%;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .screen.active {
+            display: flex; /* Shown when active */
+        }
+
+        /* === Buttons === */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        button {
+            background-color: #38bdf8;
+            color: #0f172a;
+            border: 3px solid #0f172a;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 4px 4px 0px #0f172a;
+            transition: all 0.1s ease-in-out;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background-color: #7dd3fc;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #0f172a;
+        }
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #0f172a;
+        }
+
+        /* Special button styling for answers/next */
+        #btn-show-answer { background-color: #fcd34d; }
+        #btn-show-answer:hover { background-color: #fde047; }
+        #btn-next-action { background-color: #4ade80; }
+        #btn-next-action:hover { background-color: #86efac; }
+
+        /* === Video Container === */
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #000;
+            border: 4px solid #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 6px 6px 0px #94a3b8;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* === Utilities === */
+        .hidden {
+            display: none !important;
+        }
+
+        .answer-box {
+            background-color: #f1f5f9;
+            border: 3px dashed #38bdf8;
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .answer-box p {
+            margin-bottom: 0;
+            color: #0369a1;
+            font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+        }
+
+        /* === Animations === */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === Responsive Design adjustments === */
+        @media (max-width: 480px) {
+            .screen { padding: 1.5rem 1rem; border-width: 3px; box-shadow: 8px 8px 0px #0284c7;}
+            button { width: 100%; padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <section id="home-screen" class="screen active">
+            <h1>WTF Was That Song?</h1>
+            <p>Watch the clips. REGRET. Prove your knowledge.</p>
+            <button id="btn-play">Play Game</button>
+        </section>
+
+        <section id="video-screen" class="screen">
+            <h2 id="video-title">Round 1</h2>
+            <div class="video-wrapper">
+                <video id="game-video" playsinline controls>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="btn-group">
+                <button id="btn-play-again">Play Again</button>
+                <button id="btn-go-questions">Go to Questions</button>
+            </div>
+        </section>
+
+        <section id="question-screen" class="screen">
+            <h2 id="q-context">Video 1 - Question 1</h2>
+            <p id="q-text">Question text goes here?</p>
+            
+            <div id="a-container" class="answer-box hidden">
+                <p id="a-text">Answer text goes here!</p>
+            </div>
+
+            <button id="btn-show-answer">Show Answer</button>
+            <button id="btn-next-action" class="hidden">Next Question</button>
+        </section>
+
+        <section id="end-screen" class="screen">
+            <h1>Game Over</h1>
+            <h2>Thank You for Playing!</h2>
+            <p>You've completed all 5 rounds.</p>
+            <button id="btn-restart">Play Again</button>
+        </section>
+    </main>
+
+    <script>
+        /**
+         * Game Data Structure
+         * Replace the values here with your actual questions, answers, and local video paths.
+         */
+        const gameData = [
+            {
+                videoSrc: "video1.mp4",
+                q1: "How many times did he say 'Jaane de na'?",
+                a1: "6",
+                q2: "In what year was this song released?",
+                a2: "2020"
+            },
+            {
+                videoSrc: "video2.mp4",
+                q1: "What is a Sprinter?",
+                a1: "The word \"Sprinter\" refers directly to a Mercedes-Benz Sprinter van.",
+                q2: "A girl is wearing Skims and drinking apple cider vinegar to look like Kim Kardashian. If she accidentally spills that highly acidic vinegar directly onto the polyurethane-spandex fabric of her shapewear, what is the exact chemical reaction and probability that she accidentally melts a hole straight through her outfit while trying to look aesthetic?",
+                a2: "Nope, but the dress will lose its elasticity."
+            },
+            {
+                videoSrc: "video3.mp4",
+                q1: "What is bud trying to say?",
+                a1: "He will pay back his supplier.",
+                q2: "What is Gian's full name?",
+                a2: "Takeshi Goda"
+            },
+            {
+                videoSrc: "video4.mp4",
+                q1: "What's the disease the singer is suffering from?",
+                a1: "Being Black.",
+                q2: "What are the lyrics of this song?",
+                a2: "I don't know ¯\_(ツ)_/¯."
+            },
+            {
+                videoSrc: "video5.mp4",
+                q1: "Where is the original singer from?",
+                a1: "Mangalwar Peth",
+                q2: "What is Modi ji's mother's name?",
+                a2: "Heerabai Modi"
+            }
+        ];
+
+        // --- Game State Variables ---
+        let currentRoundIndex = 0;   // 0 to 4 (for 5 videos)
+        let currentQuestionNum = 1;  // 1 or 2
+
+        // --- DOM Elements ---
+        const screens = document.querySelectorAll('.screen');
+        
+        // Video Screen Elements
+        const videoTitle = document.getElementById('video-title');
+        const gameVideo = document.getElementById('game-video');
+        
+        // Question Screen Elements
+        const qContext = document.getElementById('q-context');
+        const qText = document.getElementById('q-text');
+        const aContainer = document.getElementById('a-container');
+        const aText = document.getElementById('a-text');
+        
+        // Buttons
+        const btnPlay = document.getElementById('btn-play');
+        const btnPlayAgain = document.getElementById('btn-play-again');
+        const btnGoQuestions = document.getElementById('btn-go-questions');
+        const btnShowAnswer = document.getElementById('btn-show-answer');
+        const btnNextAction = document.getElementById('btn-next-action');
+        const btnRestart = document.getElementById('btn-restart');
+
+        // --- Core Functions ---
+
+        // Helper: Switch active screen cleanly
+        function showScreen(targetScreenId) {
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(targetScreenId).classList.add('active');
+        }
+
+        // Helper: Pause video to prevent audio bleed
+        function stopVideo() {
+            gameVideo.pause();
+            gameVideo.currentTime = 0;
+        }
+
+        // Start the entire game
+        function startGame() {
+            currentRoundIndex = 0;
+            currentQuestionNum = 1;
+            loadVideoRound();
+        }
+
+        // Load the video screen for the current round
+        function loadVideoRound() {
+            const currentData = gameData[currentRoundIndex];
+            videoTitle.textContent = `Round ${currentRoundIndex + 1}`;
+            gameVideo.src = currentData.videoSrc;
+            
+            showScreen('video-screen');
+            // Attempt to autoplay, catch errors if browser blocks unmuted autoplay
+            gameVideo.play().catch(e => console.log("Autoplay prevented by browser. User must click 'Play Again'.", e));
+        }
+
+        // Setup and show the current question screen
+        function loadQuestionScreen() {
+            stopVideo(); // Critical cleanup: stop audio bleeding
+            const currentData = gameData[currentRoundIndex];
+            
+            // Set Context and Texts
+            qContext.textContent = `Video ${currentRoundIndex + 1} - Question ${currentQuestionNum}`;
+            
+            if (currentQuestionNum === 1) {
+                qText.textContent = currentData.q1;
+                aText.textContent = currentData.a1;
+                btnNextAction.textContent = "Next Question";
+            } else {
+                qText.textContent = currentData.q2;
+                aText.textContent = currentData.a2;
+                // If it's the last question of the last video, update button text
+                if (currentRoundIndex === gameData.length - 1) {
+                    btnNextAction.textContent = "Finish Game";
+                } else {
+                    btnNextAction.textContent = "Next Video";
+                }
+            }
+
+            // Reset UI state for the new question
+            aContainer.classList.add('hidden');
+            btnShowAnswer.classList.remove('hidden');
+            btnNextAction.classList.add('hidden');
+
+            showScreen('question-screen');
+        }
+
+        // Reveal the answer and toggle action buttons
+        function revealAnswer() {
+            btnShowAnswer.classList.add('hidden');
+            aContainer.classList.remove('hidden');
+            btnNextAction.classList.remove('hidden');
+        }
+
+        // Handle routing when clicking "Next" on a question
+        function handleNextAction() {
+            if (currentQuestionNum === 1) {
+                // Advance to Question 2
+                currentQuestionNum = 2;
+                loadQuestionScreen();
+            } else {
+                // Advance to next video OR end game
+                currentRoundIndex++;
+                if (currentRoundIndex < gameData.length) {
+                    currentQuestionNum = 1;
+                    loadVideoRound();
+                } else {
+                    showScreen('end-screen');
+                }
+            }
+        }
+
+        // --- Event Listeners ---
+        btnPlay.addEventListener('click', startGame);
+        
+        btnPlayAgain.addEventListener('click', () => {
+            gameVideo.currentTime = 0;
+            gameVideo.play();
+        });
+        
+        btnGoQuestions.addEventListener('click', loadQuestionScreen);
+        
+        btnShowAnswer.addEventListener('click', revealAnswer);
+        
+        btnNextAction.addEventListener('click', handleNextAction);
+        
+        btnRestart.addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>

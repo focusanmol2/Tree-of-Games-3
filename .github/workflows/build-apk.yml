@@ -1,0 +1,38 @@
+name: Compile Local Web App Assets To APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  convert-to-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Pull Source Files
+      uses: actions/checkout@v4
+
+    - name: Initialize Java Compiler Environment
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Map Asset Tree For Packaging
+      run: |
+        mkdir -p app-build/app/src/main/assets
+        rsync -av --progress . app-build/app/src/main/assets/ --exclude app-build --exclude .git --exclude .github
+
+    - name: Trigger Web-To-APK Compilation Engine
+      uses: marketplace/actions/website-to-apk-action@v1.1.1
+      with:
+        app-name: "MyLocalWebApp"
+        build-folder-path: "./"
+        output-folder-path: "compiled-app-distribution/"
+
+    - name: Package And Compress Output APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Finished-Android-Application
+        path: compiled-app-distribution/**/*.apk
