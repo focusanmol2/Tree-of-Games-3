@@ -1,38 +1,32 @@
-name: Compile Local Web App Assets To APK
-
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
+name: Make My APK
+on: [push, workflow_dispatch]
 jobs:
-  convert-to-apk:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Pull Source Files
+    - name: Checkout Source Files
       uses: actions/checkout@v4
 
-    - name: Initialize Java Compiler Environment
+    - name: Set up Java Compiler Environment
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Map Asset Tree For Packaging
+    - name: Move Assets Into App Folder
       run: |
-        mkdir -p app-build/app/src/main/assets
-        rsync -av --progress . app-build/app/src/main/assets/ --exclude app-build --exclude .git --exclude .github
+        mkdir -p app/src/main/assets
+        rsync -av . app/src/main/assets/ --exclude app --exclude .git --exclude .github
 
-    - name: Trigger Web-To-APK Compilation Engine
-      uses: marketplace/actions/website-to-apk-action@v1.1.1
+    - name: Compile Website to APK File
+      uses: elvisjacob/website-to-apk-action@v1.0.2
       with:
-        app-name: "MyLocalWebApp"
+        app-name: "TreeOfGames"
         build-folder-path: "./"
-        output-folder-path: "compiled-app-distribution/"
+        output-folder-path: "output/"
 
-    - name: Package And Compress Output APK
+    - name: Upload Final Android App Package
       uses: actions/upload-artifact@v4
       with:
-        name: Finished-Android-Application
-        path: compiled-app-distribution/**/*.apk
+        name: My-Phone-App
+        path: output/**/*.apk
