@@ -7,25 +7,19 @@ jobs:
     - name: Checkout Source Files
       uses: actions/checkout@v4
 
-    - name: Set up Java Compiler Environment
-      uses: actions/setup-java@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
       with:
-        java-version: '17'
-        distribution: 'temurin'
+        node-version: '16'
 
-    - name: Move Assets Into App Folder
-      run: |
-        mkdir -p app/src/main/assets
-        rsync -av . app/src/main/assets/ --exclude app --exclude .git --exclude .github
-
-    - name: Compile Website to APK File
-      uses: elvisjacob/website-to-apk-action@v1.0.2
+    - name: Compile Website to APK
+      uses: darkshredder/website-to-apk-action@v1.1.1
       with:
         app-name: "TreeOfGames"
         build-folder-path: "./"
         output-folder-path: "output/"
 
-    - name: Upload Final Android App Package
+    - name: Upload Final App
       uses: actions/upload-artifact@v4
       with:
         name: My-Phone-App
