@@ -1,26 +1,37 @@
-name: Make My APK
+name: Generate Game APK
 on: [push, workflow_dispatch]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Source Files
+    - name: Clone Web Code
       uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '16'
+    - name: Initialize Android System Studio Template
+      run: |
+        git clone https://github.com/shiahonb777/web-to-app.git android-project
+        mkdir -p android-project/app/src/main/assets/www
+        cp -r ./game1 ./game2 ./game3 ./game4 ./game5 ./index.html android-project/app/src/main/assets/www/ || true
+        cp -r ./* android-project/app/src/main/assets/www/ || true
 
-    - name: Compile Website to APK
-      uses: darkshredder/website-to-apk-action@v1.1.1
+    - name: Setup Java Environment
+      uses: actions/setup-java@v4
       with:
-        app-name: "TreeOfGames"
-        build-folder-path: "./"
-        output-folder-path: "output/"
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
 
-    - name: Upload Final App
+    - name: Grant Build Permissions
+      run: chmod +x android-project/gradlew
+
+    - name: Compile Native Mobile APK
+      run: |
+        cd android-project
+        ./gradlew assembleDebug
+
+    - name: Deliver Finished APK Package
       uses: actions/upload-artifact@v4
       with:
-        name: My-Phone-App
-        path: output/**/*.apk
+        name: TreeOfGames-App
+        path: android-project/app/build/outputs/apk/debug/*.apk
